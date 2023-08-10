@@ -134,14 +134,11 @@ for file in _[0-9][0-9][0-9][0-9].txt; do
     fi
 
     # Get audio duration
-    HHMMSS=$(ffmpeg -i $audio_file 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,//)
-    H=$(echo $HHMMSS | cut -d ":" -f 1)
-    M=$(echo $HHMMSS | cut -d ":" -f 2)
-    S=$(echo $HHMMSS | cut -d ":" -f 3)
-    DURATION=$(echo "$H * 3600 + $M * 60 + $S" | bc)
+    DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $audio_file)
 
     # Generate video with text overlay
-    ffmpeg -f lavfi -i color=c=black:s=1920x1080:d=$DURATION \
+    BACKGROUND_COLOR="black"
+    ffmpeg -f lavfi -i color=c=$BACKGROUND_COLOR:s=1920x1080:d=$DURATION \
     -vf "drawtext=textfile=$file:fontsize=$default_font_size:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:line_spacing=$line_spacing_value" \
     -c:v libx264 temp_video_$file.mp4
 
@@ -162,6 +159,10 @@ done
 ffmpeg -f concat -safe 0 -i videos_to_concat.txt -c copy final_video.mp4
 
 # Cleanup temp, merged, and list files
+rm merged_*.mp4
+rm videos_to_concat.txt
+
+echo "Processing completed. final_video.mp4 is ready."
 rm merged_*.mp4
 rm videos_to_concat.txt
 
