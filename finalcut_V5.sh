@@ -136,14 +136,12 @@ for file in _[0-9][0-9][0-9][0-9].txt; do
     # Get audio duration
     DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $audio_file)
 
-    # Generate video with text overlay
+    # Generate video with text overlay and audio
     BACKGROUND_COLOR="black"
     ffmpeg -f lavfi -i color=c=$BACKGROUND_COLOR:s=1920x1080:d=$DURATION \
+    -i $audio_file \
     -vf "drawtext=textfile=$file:fontsize=$default_font_size:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:line_spacing=$line_spacing_value" \
-    -c:v libx264 temp_video_$file.mp4
-
-    # Merge video with audio
-    ffmpeg -i temp_video_$file.mp4 -i $audio_file -c:v copy -c:a aac -strict experimental merged_$file.mp4
+    -c:v libx264 -c:a aac -strict experimental final_video_$file.mp4
 
     rm temp_video_$file.mp4
     rm $file
@@ -165,5 +163,7 @@ rm videos_to_concat.txt
 echo "Processing completed. final_video.mp4 is ready."
 rm merged_*.mp4
 rm videos_to_concat.txt
+
+echo "Processing completed. final_video.mp4 is ready."
 
 echo "Processing completed. final_video.mp4 is ready."
