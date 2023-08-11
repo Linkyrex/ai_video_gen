@@ -6,6 +6,12 @@ import subprocess
 import glob
 
 REQUIRED_COMMANDS = ["awk", "aws", "ffmpeg"]
+BACKGROUND_COLOR = "black"
+FRAME_WIDTH = 1920
+FRAME_HEIGHT = 1080
+TEXT_BORDER = 0.1
+TEXT_FONT_SIZE = 50
+LINE_SPACING_VALUE = 50
 
 def check_requirements(commands=REQUIRED_COMMANDS):
     for command in commands:
@@ -61,12 +67,6 @@ def synthesize_speech():
 
     print("Audio synthesis completed.")
 
-BACKGROUND_COLOR = "black"
-FRAME_WIDTH = 1920
-FRAME_HEIGHT = 1080
-TEXT_BORDER = 0.1
-TEXT_FONT_SIZE = 50
-line_spacing_value = 50
 def process_files():
     for file_name in sorted(os.listdir('.')):
         if file_name.startswith('_') and file_name.endswith('.txt'):
@@ -92,9 +92,9 @@ def calculate_text_dimensions():
 
 def generate_video_with_text(file_name, duration, text_width, text_height):
     ffmpeg_command = f'''ffmpeg -f lavfi -i color=c={BACKGROUND_COLOR}:s={FRAME_WIDTH}x{FRAME_HEIGHT}:d={duration} \
-    -vf "drawtext=textfile={file_name}:fontsize={TEXT_FONT_SIZE}:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:line_spacing={line_spacing_value}" \
+    -vf "drawtext=textfile={file_name}:fontsize={TEXT_FONT_SIZE}:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:line_spacing={LINE_SPACING_VALUE}" \
     -c:v libx264 temp_video_{file_name}.mp4'''
-    os.system(ffmpeg_command)
+    subprocess.run(ffmpeg_command.split())
 
 def merge_video_with_audio(file_name, audio_file):
     merge_command = f'ffmpeg -i temp_video_{file_name}.mp4 -i {audio_file} -c:v copy -c:a aac -strict experimental merged_{file_name}.mp4'
